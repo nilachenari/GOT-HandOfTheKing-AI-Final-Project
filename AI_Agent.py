@@ -4,6 +4,34 @@ import time
 from main import make_move, set_banners, make_companion_move, remove_unusable_companion_cards, house_card_count
 
 
+def apply(move,companion_cards,turn,player1,player2,cards):
+    choose_companion = True  # Reset the flag
+    if move[0] in companion_cards.keys():
+        # Remove the companion card from the list
+        del companion_cards[move[0]]
+
+        # Make the companion move
+        is_house = make_companion_move(cards, companion_cards, move, player1 if turn == 1 else player2)
+
+        # Remove the companion cards that cannot be used
+        remove_unusable_companion_cards(cards, companion_cards)
+
+        # Set the banners for the players
+        set_banners(player1, player2,is_house, turn)
+
+
+        # Melisandre gives the player another turn
+        if move[0] != 'Melisandre':
+            # Change the turn
+            turn = 2 if turn == 1 else 1
+
+        choose_companion = False  # Reset the flag
+    if turn == 1:
+        return choose_companion, True
+    else:
+        return choose_companion, False
+
+
 def find_varys(cards):
     '''
     This function finds the location of Varys on the board.
@@ -102,65 +130,65 @@ def get_move(cards, player1, player2, companion_cards, choose_companion):
         move (int/list): the move of the player
     '''
 
-    if 1 == 2:
-    # if choose_companion:
-        # Choose a random companion card if available
-        if companion_cards:
-            selected_companion = random.choice(list(companion_cards.keys())) # Randomly select a companion card
-            move = [selected_companion] # Add the companion card to the move list
-            choices = companion_cards[selected_companion]['Choice'] # Get the number of choices required by the companion card
-            
-            if choices == 1:  # For cards like Jon Snow
-                move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
-            
-            elif choices == 2:  # For cards like Ramsay
-                valid_moves = get_valid_ramsay(cards)
-
-                if len(valid_moves) >= 2:
-                    move.extend(random.sample(valid_moves, 2))
-                
-                else:
-                    move.extend(valid_moves)  # If not enough moves, just use what's available
-                
-                
-            elif choices == 3:  # Special case for Jaqen with an additional companion card selection
-                valid_moves = get_valid_jon_sandor_jaqan(cards)
-
-                if len(valid_moves) >= 2 and len(companion_cards) > 0:
-                    move.extend(random.sample(valid_moves, 2))
-                    move.append(random.choice(list(companion_cards.keys())))
-                
-                else:
-                    # If there aren't enough moves or companion cards, just return what's possible
-                    move.extend(valid_moves)
-                    move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
-        
-            return move
-        
-        else:
-            # If no companion cards are left, just return an empty list to signify no action
-            return []
+    # if 1 == 2:
+    # # if choose_companion:
+    #     # Choose a random companion card if available
+    #     if companion_cards:
+    #         selected_companion = random.choice(list(companion_cards.keys())) # Randomly select a companion card
+    #         move = [selected_companion] # Add the companion card to the move list
+    #         choices = companion_cards[selected_companion]['Choice'] # Get the number of choices required by the companion card
+    #
+    #         if choices == 1:  # For cards like Jon Snow
+    #             move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
+    #
+    #         elif choices == 2:  # For cards like Ramsay
+    #             valid_moves = get_valid_ramsay(cards)
+    #
+    #             if len(valid_moves) >= 2:
+    #                 move.extend(random.sample(valid_moves, 2))
+    #
+    #             else:
+    #                 move.extend(valid_moves)  # If not enough moves, just use what's available
+    #
+    #
+    #         elif choices == 3:  # Special case for Jaqen with an additional companion card selection
+    #             valid_moves = get_valid_jon_sandor_jaqan(cards)
+    #
+    #             if len(valid_moves) >= 2 and len(companion_cards) > 0:
+    #                 move.extend(random.sample(valid_moves, 2))
+    #                 move.append(random.choice(list(companion_cards.keys())))
+    #
+    #             else:
+    #                 # If there aren't enough moves or companion cards, just return what's possible
+    #                 move.extend(valid_moves)
+    #                 move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
+    #
+    #         return move
+    #
+    #     else:
+    #         # If no companion cards are left, just return an empty list to signify no action
+    #         return []
     
-    else:
-        # Normal move, choose from valid moves
-        moves = get_valid_moves(cards)
 
-        cards_copy = copy.deepcopy(cards)
-        player1_copy = copy.deepcopy(player1)
-        player2_copy = copy.deepcopy(player2)
-        companion_cards_copy = copy.deepcopy(companion_cards)
-        choose_companion_copy = copy.deepcopy(choose_companion)
+    # # Normal move, choose from valid moves
+    # moves = get_valid_moves(cards)
+    #
+    # cards_copy = copy.deepcopy(cards)
+    # player1_copy = copy.deepcopy(player1)
+    # player2_copy = copy.deepcopy(player2)
+    # companion_cards_copy = copy.deepcopy(companion_cards)
+    # choose_companion_copy = copy.deepcopy(choose_companion)
 
-        depth = 7
-        best_score, best_move = minimax(cards_copy, True, -float("inf"), float("inf"), player1_copy, player2_copy, time.time(), depth, companion_cards_copy, choose_companion_copy)
+    depth = 1
+    best_score, best_move = minimax(cards, True, -float("inf"), float("inf"), player1, player2, time.time(), depth, companion_cards, choose_companion)
 
-        return best_move
-
-
+    return best_move
 
 
 
-def evaluate_board(cards, player1, player2, companion_cards=[], choose_companion= False):
+
+
+def evaluate_board(cards, player1, player2, companion_cards, choose_companion):
     score = 0
 
     # Retrieve banners from both players
@@ -201,7 +229,7 @@ def evaluate_board(cards, player1, player2, companion_cards=[], choose_companion
     return score
 
 
-def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, companion_cards =[], choose_companion=False):
+def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, companion_cards, choose_companion):
     """
     Minimax algorithm with alpha-beta pruning and move sorting for better pruning.
     returns best_score, best_move
@@ -209,107 +237,57 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
 
 
     if choose_companion:
-        # Choose a random companion card if available
 
-        if(maxplayer):
-            best_val = -float("-inf")
+        selected_companion = random.choice(list(companion_cards.keys()))  # Randomly select a companion card
 
-            if companion_cards:
+        move = [selected_companion]  # Add the companion card to the move list
+        choices = companion_cards[selected_companion]['Choice']  # Get the number of choices required by the companion card
 
-                # for comp_card in companion_cards:
+        if choices == 1:  # For cards like Jon Snow
+            move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
 
-                    comp_card = "Jon"
+        elif choices == 2:  # For cards like Ramsay
+            valid_moves = get_valid_ramsay(cards)
 
-                    move = [comp_card]
-                    choices = companion_cards[comp_card]['Choice']
+            if len(valid_moves) >= 2:
+                move.extend(random.sample(valid_moves, 2))
 
-                    if(comp_card == 'Jon'):
-                        valids = get_valid_jon_sandor_jaqan(cards)
-                        for valid in valids:
-
-                            cards_copy = copy.deepcopy(cards)
-                            player1_copy = copy.deepcopy(player1)
-                            player2_copy = copy.deepcopy(player2)
-                            companion_cards_copy = copy.deepcopy(companion_cards)
-                            move_copy = copy.deepcopy(move)
-
-                            del companion_cards_copy[move_copy[0]]
-                            is_house = make_companion_move(cards_copy, companion_cards_copy, move_copy, player1_copy)
-                            remove_unusable_companion_cards(cards_copy, companion_cards_copy)
-                            player1_copy, player2_copy = set_banners(player1_copy, player2_copy, is_house, 1)
-                            move_copy.append(valid)
-
-                            val, _ = minimax(cards_copy, False, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy)
-                            if val > best_val:
-                                best_val = val
-                                best_move = move
-                            alpha = max(alpha, best_val)
-                            if beta <= alpha:  # Alpha-Beta Pruning
-                                break
-                        return best_val, best_move
+            else:
+                move.extend(valid_moves)  # If not enough moves, just use what's available
 
 
-                    # elif(comp_card == 'Gendry'):
-                    #     pass
-                    # elif(comp_card == 'Ramsay'):
-                    #     pass
-                    # elif(comp_card == 'Sandor'):
-                    #     pass
-                    # elif(comp_card == 'Jaqen'):
-                    #     pass
-                    # elif(comp_card == 'Melisandre'):
-                    #     pass
-                    # else:
-                    #     print("ERORRRRRRRRRRRRRR")
+        elif choices == 3:  # Special case for Jaqen with an additional companion card selection
+            valid_moves = get_valid_jon_sandor_jaqan(cards)
 
+            if len(valid_moves) >= 2 and len(companion_cards) > 0:
+                move.extend(random.sample(valid_moves, 2))
+                move.append(random.choice(list(companion_cards.keys())))
 
-                    cards_copy = copy.deepcopy(cards)
-                    player1_copy = copy.deepcopy(player1)
-                    player2_copy = copy.deepcopy(player2)
-                    companion_cards_copy = copy.deepcopy(companion_cards)
-                    choose_companion_copy = copy.deepcopy(choose_companion)
-                    selected_companion = comp_card
-
-                    # print(selected_companion)
-                    pass
+            else:
+                # If there aren't enough moves or companion cards, just return what's possible
+                move.extend(valid_moves)
+                move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
 
 
 
-            selected_companion = random.choice(list(companion_cards.keys()))  # Randomly select a companion card
 
-            move = [selected_companion]  # Add the companion card to the move list
-            choices = companion_cards[selected_companion]['Choice']  # Get the number of choices required by the companion card
+        cards_copy =  copy.deepcopy(cards)
+        player1_copy = copy.deepcopy(player1)
+        player2_copy = copy.deepcopy(player2)
+        companion_cards_copy = copy.deepcopy(companion_cards)
 
-            if choices == 1:  # For cards like Jon Snow
-                move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
-
-            elif choices == 2:  # For cards like Ramsay
-                valid_moves = get_valid_ramsay(cards)
-
-                if len(valid_moves) >= 2:
-                    move.extend(random.sample(valid_moves, 2))
-
-                else:
-                    move.extend(valid_moves)  # If not enough moves, just use what's available
-
-
-            elif choices == 3:  # Special case for Jaqen with an additional companion card selection
-                valid_moves = get_valid_jon_sandor_jaqan(cards)
-
-                if len(valid_moves) >= 2 and len(companion_cards) > 0:
-                    move.extend(random.sample(valid_moves, 2))
-                    move.append(random.choice(list(companion_cards.keys())))
-
-                else:
-                    # If there aren't enough moves or companion cards, just return what's possible
-                    move.extend(valid_moves)
-                    move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
-
-            return 0, move
-
+        if maxplayer:
+            choose_companion,maxplayer = apply(move, companion_cards_copy, 1,player1_copy, player2_copy, cards_copy)
+            best_val,best_move =minimax(cards_copy, maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth, companion_cards, choose_companion)
+            return best_val, move
         else:
-            # If no companion cards are left, just return an empty list to signify no action
-            return 0, []
+            choose_companion,maxplayer = apply(move, companion_cards_copy, 2,player1_copy, player2_copy, cards)
+            best_val, best_move= minimax(cards_copy, maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth, companion_cards, choose_companion)
+            return best_val, move
+
+
+
+
 
 
 
@@ -317,7 +295,7 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
     else:
         next_move = get_valid_moves(cards)
         if time.time() - start_time > 9.91 or not next_move or depth == 0:
-            return evaluate_board(cards, player1, player2), None
+            return evaluate_board(cards, player1, player2,companion_cards, choose_companion), None
 
         best_move = None
         if maxplayer:
@@ -332,7 +310,8 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
                 set_banners(player1_copy, player2_copy, selected_house, 1)
 
                 choose_companion = False
-                if house_card_count(cards_copy, selected_house) == 0 and len(companion_cards) != 0:
+                test =house_card_count(cards_copy, selected_house)
+                if  test == 0 and len(companion_cards) != 0:
                     choose_companion = True
 
                 val, _ = minimax(cards_copy, False, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
