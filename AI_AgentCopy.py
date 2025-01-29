@@ -167,11 +167,11 @@ def get_move(cards, player1, player2, companion_cards, choose_companion):
         move (int/list): the move of the player
     '''
     if choose_companion:
-        depth = 4
+        depth = 2
         best_score, best_move = minimax_right(cards, True, -float("inf"), float("inf"), player1, player2, time.time(),
                                               depth, companion_cards, False)
     else:
-        depth = 4
+        depth = 2
         best_score, best_move = minimax(cards, True, -float("inf"), float("inf"), player1, player2, time.time(), depth,
                                         companion_cards, False)
 
@@ -281,7 +281,8 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
         return best_val, best_move
 
 
-def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, companion_cards,choose_companion):
+def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, companion_cards,
+                  choose_companion):
     next_move = list(companion_cards.keys())
     if time.time() - start_time > 9.91 or not next_move or depth == 0 or choose_companion:
         return evaluate_board(cards, player1, player2, companion_cards, choose_companion), None
@@ -300,44 +301,43 @@ def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, d
                     continue
 
                 for choice in S:
-                    if move == 'Jon':
-                        chosen_card_house = find_card(cards, choice).get_house()
+                    chosen_card_house = find_card(cards, choice).get_house()
 
-                        if chosen_card_house == 'Stark':
-                            if done[0]:
-                                continue
-                            else:
-                                done[0] = True
-                        if chosen_card_house == 'Greyjoy':
-                            if done[1]:
-                                continue
-                            else:
-                                done[1] = True
-                        if chosen_card_house == 'Lannister':
-                            if done[2]:
-                                continue
-                            else:
-                                done[2] = True
-                        if chosen_card_house == 'Targaryen':
-                            if done[3]:
-                                continue
-                            else:
-                                done[3] = True
-                        if chosen_card_house == 'Baratheon':
-                            if done[4]:
-                                continue
-                            else:
-                                done[4] = True
-                        if chosen_card_house == 'Tyrell':
-                            if done[5]:
-                                continue
-                            else:
-                                done[5] = True
-                        if chosen_card_house == 'Tully':
-                            if done[6]:
-                                continue
-                            else:
-                                done[6] = True
+                    if chosen_card_house == 'Stark':
+                        if done[0]:
+                            continue
+                        else:
+                            done[0] = True
+                    if chosen_card_house == 'Greyjoy':
+                        if done[1]:
+                            continue
+                        else:
+                            done[1] = True
+                    if chosen_card_house == 'Lannister':
+                        if done[2]:
+                            continue
+                        else:
+                            done[2] = True
+                    if chosen_card_house == 'Targaryen':
+                        if done[3]:
+                            continue
+                        else:
+                            done[3] = True
+                    if chosen_card_house == 'Baratheon':
+                        if done[4]:
+                            continue
+                        else:
+                            done[4] = True
+                    if chosen_card_house == 'Tyrell':
+                        if done[5]:
+                            continue
+                        else:
+                            done[5] = True
+                    if chosen_card_house == 'Tully':
+                        if done[6]:
+                            continue
+                        else:
+                            done[6] = True
 
 
 
@@ -446,138 +446,18 @@ def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, d
     else:
         best_val = float("inf")
 
-        for move in next_move:
+        if 1 ==2:
+            pass
 
 
 
-            if move == 'Jon' or move == 'Sandor':
-                # Stark: 3 Greyjoy: 2 Lannister: 1 Targaryen: 0 Baratheon: 0 Tyrell: 0 Tully: 0
-                done = [False, False, False, False, False, False, False, False]
-                print(f"{move} is controlling")
-                S = get_valid_jon_sandor_jaqan(cards)
-                if (len(S) == 0):
-                    continue
-
-                for choice in S:
-                    chosen_card_house = find_card(cards, choice).get_house()
-                    if move == 'Jon':
-                        if chosen_card_house == 'Stark':
-                            if done[0]:
-                                continue
-                            else:
-                                done[0] = True
-                        if chosen_card_house == 'Greyjoy':
-                            if done[1]:
-                                continue
-                            else:
-                                done[1] = True
-                        if chosen_card_house == 'Lannister':
-                            if done[2]:
-                                continue
-                            else:
-                                done[2] = True
-                        if chosen_card_house == 'Targaryen':
-                            if done[3]:
-                                continue
-                            else:
-                                done[3] = True
-                        if chosen_card_house == 'Baratheon':
-                            if done[4]:
-                                continue
-                            else:
-                                done[4] = True
-                        if chosen_card_house == 'Tyrell':
-                            if done[5]:
-                                continue
-                            else:
-                                done[5] = True
-                        if chosen_card_house == 'Tully':
-                            if done[6]:
-                                continue
-                            else:
-                                done[6] = True
-
-                    cards_copy = copy.deepcopy(cards)
-                    player1_copy = copy.deepcopy(player1)
-                    player2_copy = copy.deepcopy(player2)
-                    companion_cards_copy = copy.deepcopy(companion_cards)
-                    new_move = [move, choice]
-                    choose_companion, Maxplayer = apply(new_move, companion_cards_copy, 2, player1_copy, player2_copy,
-                                                        cards_copy)
-
-                    val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1,
-                                 companion_cards_copy, choose_companion)
-
-                    if val < best_val:
-                        best_val = val
-                        best_move = new_move
-                    beta = min(beta, best_val)
-                    if beta <= alpha:  # Alpha-Beta Pruning
-                        break
-                    return best_val, best_move
-
-            elif move == 'Gendry':
-                print("Gendry is controlling")
-
-                cards_copy = copy.deepcopy(cards)
-                player1_copy = copy.deepcopy(player1)
-                player2_copy = copy.deepcopy(player2)
-                companion_cards_copy = copy.deepcopy(companion_cards)
-                new_move = ["Gendry"]
-                choose_companion, Maxplayer = apply(new_move, companion_cards_copy, 2, player1_copy, player2_copy, cards_copy)
-                val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
-
-                if val < best_val:
-                    best_val = val
-                    best_move = new_move
-                beta = min(beta, best_val)
-                if beta <= alpha:  # Alpha-Beta Pruning
-                    break
-                return best_val, best_move
-
-            elif move == 'Ramsay':
-                print("Ramsay is controlling")
-                cards1 = copy.deepcopy(get_valid_ramsay(cards))
-                for c1 in cards1:
-                    for c2 in cards1:
-                        if c1 == c2:
-                            continue
-                        new_move = ['Ramsay', c1, c2]
-                        cards_copy = copy.deepcopy(cards)
-                        player1_copy = copy.deepcopy(player1)
-                        player2_copy = copy.deepcopy(player2)
-                        companion_cards_copy = copy.deepcopy(companion_cards)
-                        choose_companion, Maxplayer = apply(new_move, companion_cards_copy, 2, player1_copy, player2_copy, cards_copy)
-
-                        val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
-                        if val < best_val:
-                            best_val = val
-                            best_move = new_move
-                        beta = min(beta, best_val)
-                        if beta <= alpha:  # Alpha-Beta Pruning
-                            break
-                        return best_val, best_move
-
-            elif move == 'Melisandre':
-                print("Melisandre is controlling")
-                cards_copy = copy.deepcopy(cards)
-                player1_copy = copy.deepcopy(player1)
-                player2_copy = copy.deepcopy(player2)
-                companion_cards_copy = copy.deepcopy(companion_cards)
-                new_move = [move]
-                choose_companion, Maxplayer = apply(new_move, companion_cards_copy, 2, player1_copy, player2_copy,cards_copy)
-
-                val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1,companion_cards_copy, choose_companion)
-                if val < best_val:
-                    best_val = val
-                    best_move = new_move
-                beta = min(beta, best_val)
-                if beta <= alpha:  # Alpha-Beta Pruning
-                    break
-                return best_val, best_move
 
 
-            else:
+
+
+
+        else:
+            for move in next_move:
                 cards_copy = copy.deepcopy(cards)
                 player1_copy = copy.deepcopy(player1)
                 player2_copy = copy.deepcopy(player2)
@@ -590,7 +470,7 @@ def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, d
                 # if house_card_count(cards_copy, selected_house) == 0 and len(companion_cards) != 0:
                 #     choose_companion = True
                 M = select(move, companion_cards_copy, cards_copy)
-                choose_companion, Maxplayer = apply(M, companion_cards_copy, 2, player1_copy, player2_copy, cards_copy)
+                choose_companion, Maxplayer = apply(M, companion_cards_copy, 1, player1_copy, player2_copy, cards_copy)
 
                 val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1,
                                  companion_cards_copy, choose_companion)
