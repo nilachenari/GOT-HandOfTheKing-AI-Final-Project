@@ -302,13 +302,43 @@ def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, d
 
                 for choice in S:
                     chosen_card_house = find_card(cards, choice).get_house()
-                    if chosen_card_house == 'Stark' and done[0]: continue
-                    if chosen_card_house == 'Greyjoy' and done[1]: continue
-                    if chosen_card_house == 'Lannister' and done[2]: continue
-                    if chosen_card_house == 'Targaryen' and done[3]: continue
-                    if chosen_card_house == 'Baratheon' and done[4]: continue
-                    if chosen_card_house == 'Tyrell' and done[5]: continue
-                    if chosen_card_house == 'Tully' and done[6]: continue
+
+                    if chosen_card_house == 'Stark':
+                        if done[0]:
+                            continue
+                        else:
+                            done[0] = True
+                    if chosen_card_house == 'Greyjoy':
+                        if done[1]:
+                            continue
+                        else:
+                            done[1] = True
+                    if chosen_card_house == 'Lannister':
+                        if done[2]:
+                            continue
+                        else:
+                            done[2] = True
+                    if chosen_card_house == 'Targaryen':
+                        if done[3]:
+                            continue
+                        else:
+                            done[3] = True
+                    if chosen_card_house == 'Baratheon':
+                        if done[4]:
+                            continue
+                        else:
+                            done[4] = True
+                    if chosen_card_house == 'Tyrell':
+                        if done[5]:
+                            continue
+                        else:
+                            done[5] = True
+                    if chosen_card_house == 'Tully':
+                        if done[6]:
+                            continue
+                        else:
+                            done[6] = True
+
 
 
                     cards_copy = copy.deepcopy(cards)
