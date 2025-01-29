@@ -4,6 +4,42 @@ import time
 from main import make_move, set_banners, make_companion_move, remove_unusable_companion_cards, house_card_count
 
 
+def select(selected_companion,companion_cards,cards):
+
+    move = [selected_companion]  # Add the companion card to the move list
+    choices = companion_cards[selected_companion]['Choice']  # Get the number of choices required by the companion card
+
+    if choices == 1: # For cards like Jon Snow
+        S = get_valid_jon_sandor_jaqan(cards)
+        if len(S) != 0:
+            move.append(random.choice(S))
+
+    elif choices == 2:  # For cards like Ramsay
+        valid_moves = get_valid_ramsay(cards)
+
+        if len(valid_moves) >= 2:
+            move.extend(random.sample(valid_moves, 2))
+
+        else:
+            move.extend(valid_moves)  # If not enough moves, just use what's available
+
+
+    elif choices == 3:  # Special case for Jaqen with an additional companion card selection
+        valid_moves = get_valid_jon_sandor_jaqan(cards)
+
+        if len(valid_moves) >= 2 and len(companion_cards) > 0:
+            move.extend(random.sample(valid_moves, 2))
+            move.append(random.choice(list(companion_cards.keys())))
+
+        else:
+            # If there aren't enough moves or companion cards, just return what's possible
+            move.extend(valid_moves)
+            move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
+
+    return move
+
+
+
 def apply(move,companion_cards,turn,player1,player2,cards):
     choose_companion = True  # Reset the flag
     if move[0] in companion_cards.keys():
@@ -112,7 +148,6 @@ def get_valid_jon_sandor_jaqan(cards):
     for card in cards:
         if card.get_name() != 'Varys':
             moves.append(card.get_location())
-    
     return moves
 
 def get_move(cards, player1, player2, companion_cards, choose_companion):
@@ -129,58 +164,12 @@ def get_move(cards, player1, player2, companion_cards, choose_companion):
     Returns:
         move (int/list): the move of the player
     '''
-
-    # if 1 == 2:
-    # # if choose_companion:
-    #     # Choose a random companion card if available
-    #     if companion_cards:
-    #         selected_companion = random.choice(list(companion_cards.keys())) # Randomly select a companion card
-    #         move = [selected_companion] # Add the companion card to the move list
-    #         choices = companion_cards[selected_companion]['Choice'] # Get the number of choices required by the companion card
-    #
-    #         if choices == 1:  # For cards like Jon Snow
-    #             move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
-    #
-    #         elif choices == 2:  # For cards like Ramsay
-    #             valid_moves = get_valid_ramsay(cards)
-    #
-    #             if len(valid_moves) >= 2:
-    #                 move.extend(random.sample(valid_moves, 2))
-    #
-    #             else:
-    #                 move.extend(valid_moves)  # If not enough moves, just use what's available
-    #
-    #
-    #         elif choices == 3:  # Special case for Jaqen with an additional companion card selection
-    #             valid_moves = get_valid_jon_sandor_jaqan(cards)
-    #
-    #             if len(valid_moves) >= 2 and len(companion_cards) > 0:
-    #                 move.extend(random.sample(valid_moves, 2))
-    #                 move.append(random.choice(list(companion_cards.keys())))
-    #
-    #             else:
-    #                 # If there aren't enough moves or companion cards, just return what's possible
-    #                 move.extend(valid_moves)
-    #                 move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
-    #
-    #         return move
-    #
-    #     else:
-    #         # If no companion cards are left, just return an empty list to signify no action
-    #         return []
-    
-
-    # # Normal move, choose from valid moves
-    # moves = get_valid_moves(cards)
-    #
-    # cards_copy = copy.deepcopy(cards)
-    # player1_copy = copy.deepcopy(player1)
-    # player2_copy = copy.deepcopy(player2)
-    # companion_cards_copy = copy.deepcopy(companion_cards)
-    # choose_companion_copy = copy.deepcopy(choose_companion)
-
-    depth = 1
-    best_score, best_move = minimax(cards, True, -float("inf"), float("inf"), player1, player2, time.time(), depth, companion_cards, choose_companion)
+    if choose_companion:
+        depth = 5
+        best_score, best_move = minimax_right(cards, True, -float("inf"), float("inf"), player1, player2, time.time(), depth, companion_cards, False)
+    else:
+        depth = 5
+        best_score, best_move = minimax(cards, True, -float("inf"), float("inf"), player1, player2, time.time(), depth, companion_cards, False)
 
     return best_move
 
@@ -190,7 +179,8 @@ def get_move(cards, player1, player2, companion_cards, choose_companion):
 
 def evaluate_board(cards, player1, player2, companion_cards, choose_companion):
     score = 0
-
+    if choose_companion:
+        score+= 100
     # Retrieve banners from both players
     player1_banners = player1.get_banners()
     player2_banners = player2.get_banners()
@@ -234,116 +224,115 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
     Minimax algorithm with alpha-beta pruning and move sorting for better pruning.
     returns best_score, best_move
     """
+    next_move = get_valid_moves(cards)
+    if time.time() - start_time > 9.91 or not next_move or depth == 0 or choose_companion:
+        return evaluate_board(cards, player1, player2,companion_cards, choose_companion), None
 
+    best_move = None
+    if maxplayer:
+        best_val = -float("inf")
+        for move in next_move:
+            cards_copy = copy.deepcopy(cards)
+            player1_copy = copy.deepcopy(player1)
+            player2_copy = copy.deepcopy(player2)
+            companion_cards_copy = copy.deepcopy(companion_cards)
 
-    if choose_companion:
+            selected_house = make_move(cards_copy, move, player1_copy)
+            set_banners(player1_copy, player2_copy, selected_house, 1)
 
-        selected_companion = random.choice(list(companion_cards.keys()))  # Randomly select a companion card
+            choose_companion = False
+            test =house_card_count(cards_copy, selected_house)
+            if  test == 0 and len(companion_cards) != 0:
+                choose_companion = True
 
-        move = [selected_companion]  # Add the companion card to the move list
-        choices = companion_cards[selected_companion]['Choice']  # Get the number of choices required by the companion card
-
-        if choices == 1:  # For cards like Jon Snow
-            move.append(random.choice(get_valid_jon_sandor_jaqan(cards)))
-
-        elif choices == 2:  # For cards like Ramsay
-            valid_moves = get_valid_ramsay(cards)
-
-            if len(valid_moves) >= 2:
-                move.extend(random.sample(valid_moves, 2))
-
-            else:
-                move.extend(valid_moves)  # If not enough moves, just use what's available
-
-
-        elif choices == 3:  # Special case for Jaqen with an additional companion card selection
-            valid_moves = get_valid_jon_sandor_jaqan(cards)
-
-            if len(valid_moves) >= 2 and len(companion_cards) > 0:
-                move.extend(random.sample(valid_moves, 2))
-                move.append(random.choice(list(companion_cards.keys())))
-
-            else:
-                # If there aren't enough moves or companion cards, just return what's possible
-                move.extend(valid_moves)
-                move.append(random.choice(list(companion_cards.keys())) if companion_cards else None)
-
-
-
-
-        cards_copy =  copy.deepcopy(cards)
-        player1_copy = copy.deepcopy(player1)
-        player2_copy = copy.deepcopy(player2)
-        companion_cards_copy = copy.deepcopy(companion_cards)
-
-        if maxplayer:
-            choose_companion,maxplayer = apply(move, companion_cards_copy, 1,player1_copy, player2_copy, cards_copy)
-            best_val,best_move =minimax(cards_copy, maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth, companion_cards, choose_companion)
-            return best_val, move
-        else:
-            choose_companion,maxplayer = apply(move, companion_cards_copy, 2,player1_copy, player2_copy, cards)
-            best_val, best_move= minimax(cards_copy, maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth, companion_cards, choose_companion)
-            return best_val, move
-
-
-
-
-
-
-
-
+            val, _ = minimax(cards_copy, False, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
+            if val > best_val:
+                best_val = val
+                best_move = move
+            alpha = max(alpha, best_val)
+            if beta <= alpha:  # Alpha-Beta Pruning
+                break
+        return best_val, best_move
     else:
-        next_move = get_valid_moves(cards)
-        if time.time() - start_time > 9.91 or not next_move or depth == 0:
-            return evaluate_board(cards, player1, player2,companion_cards, choose_companion), None
+        best_val = float("inf")
+        for move in next_move:
+            cards_copy = copy.deepcopy(cards)
+            player1_copy = copy.deepcopy(player1)
+            player2_copy = copy.deepcopy(player2)
+            companion_cards_copy = copy.deepcopy(companion_cards)
 
-        best_move = None
-        if maxplayer:
-            best_val = -float("inf")
-            for move in next_move:
-                cards_copy = copy.deepcopy(cards)
-                player1_copy = copy.deepcopy(player1)
-                player2_copy = copy.deepcopy(player2)
-                companion_cards_copy = copy.deepcopy(companion_cards)
+            selected_house = make_move(cards_copy, move, player2_copy)
+            set_banners(player1_copy, player2_copy, selected_house, 2)
 
-                selected_house = make_move(cards_copy, move, player1_copy)
-                set_banners(player1_copy, player2_copy, selected_house, 1)
+            choose_companion = False
+            if house_card_count(cards_copy, selected_house) == 0 and len(companion_cards) != 0:
+                choose_companion = True
 
-                choose_companion = False
-                test =house_card_count(cards_copy, selected_house)
-                if  test == 0 and len(companion_cards) != 0:
-                    choose_companion = True
-
-                val, _ = minimax(cards_copy, False, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
-                if val > best_val:
-                    best_val = val
-                    best_move = move
-                alpha = max(alpha, best_val)
-                if beta <= alpha:  # Alpha-Beta Pruning
-                    break
-            return best_val, best_move
-        else:
-            best_val = float("inf")
-            for move in next_move:
-                cards_copy = copy.deepcopy(cards)
-                player1_copy = copy.deepcopy(player1)
-                player2_copy = copy.deepcopy(player2)
-                companion_cards_copy = copy.deepcopy(companion_cards)
-
-                selected_house = make_move(cards_copy, move, player2_copy)
-                set_banners(player1_copy, player2_copy, selected_house, 2)
-
-                choose_companion = False
-                if house_card_count(cards_copy, selected_house) == 0 and len(companion_cards) != 0:
-                    choose_companion = True
-
-                val, _ = minimax(cards_copy, True, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
-                if val < best_val:
-                    best_val = val
-                    best_move = move
-                beta = min(beta, best_val)
-                if beta <= alpha:  # Alpha-Beta Pruning
-                    break
-            return best_val, best_move
+            val, _ = minimax(cards_copy, True, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
+            if val < best_val:
+                best_val = val
+                best_move = move
+            beta = min(beta, best_val)
+            if beta <= alpha:  # Alpha-Beta Pruning
+                break
+        return best_val, best_move
 
 
+def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, companion_cards, choose_companion):
+    next_move = list(companion_cards.keys())
+    if time.time() - start_time > 9.91 or not next_move or depth == 0 or choose_companion:
+        return evaluate_board(cards, player1, player2, companion_cards, choose_companion), None
+
+    best_move = None
+    if maxplayer:
+        best_val = -float("inf")
+        for move in next_move:
+            cards_copy = copy.deepcopy(cards)
+            player1_copy = copy.deepcopy(player1)
+            player2_copy = copy.deepcopy(player2)
+            companion_cards_copy = copy.deepcopy(companion_cards)
+
+            # selected_house = make_move(cards_copy, move, player1_copy)
+            # set_banners(player1_copy, player2_copy, selected_house, 1)
+            #
+            # choose_companion = False
+
+            M = select(move,companion_cards_copy,cards_copy)
+            choose_companion,Maxplayer = apply(M,companion_cards_copy,1,player1_copy,player2_copy,cards_copy)
+
+
+            val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1,
+                             companion_cards_copy, choose_companion)
+            if val > best_val:
+                best_val = val
+                best_move = M
+            alpha = max(alpha, best_val)
+            if beta <= alpha:  # Alpha-Beta Pruning
+                break
+        return best_val, best_move
+    else:
+        best_val = float("inf")
+        for move in next_move:
+            cards_copy = copy.deepcopy(cards)
+            player1_copy = copy.deepcopy(player1)
+            player2_copy = copy.deepcopy(player2)
+            companion_cards_copy = copy.deepcopy(companion_cards)
+
+            # selected_house = make_move(cards_copy, move, player2_copy)
+            # set_banners(player1_copy, player2_copy, selected_house, 2)
+            #
+            # choose_companion = False
+            # if house_card_count(cards_copy, selected_house) == 0 and len(companion_cards) != 0:
+            #     choose_companion = True
+            M = select(move, companion_cards_copy, cards_copy)
+            choose_companion, Maxplayer = apply(M, companion_cards_copy, 1, player1_copy, player2_copy, cards_copy)
+
+            val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1,
+                             companion_cards_copy, choose_companion)
+            if val < best_val:
+                best_val = val
+                best_move = M
+            beta = min(beta, best_val)
+            if beta <= alpha:  # Alpha-Beta Pruning
+                break
+        return best_val, best_move

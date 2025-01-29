@@ -100,6 +100,7 @@ def get_move(cards, player1, player2, companion_cards, choose_companion):
 
     if choose_companion:
         # Choose a random companion card if available
+
         if companion_cards:
             selected_companion = random.choice(list(companion_cards.keys())) # Randomly select a companion card
             move = [selected_companion] # Add the companion card to the move list

@@ -417,8 +417,8 @@ def make_companion_move(cards, companion_cards, move, player):
         cards.remove(first_card)
         cards.remove(second_card)
 
-        # Remove the selected companion card from the companion cards
-        del companion_cards[selected_companion_card]
+        # # Remove the selected companion card from the companion cards
+        # del companion_cards[selected_companion_card]
     
     return house
 
@@ -954,4 +954,5 @@ def main(args):
         print("Error saving video.")
 
 if __name__ == "__main__":
-    main(parser.parse_args())
+    for _ in range(20):
+        main(parser.parse_args())
