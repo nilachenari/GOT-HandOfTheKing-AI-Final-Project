@@ -375,9 +375,29 @@ def minimax_right(cards, maxplayer, alpha, beta, player1, player2, start_time, d
                     break
                 return best_val, best_move
 
+            elif move == 'Ramsay':
+                print("Ramsay is controlling")
 
+                cards1 = copy.deepcopy(get_valid_ramsay(cards))
+                for c1 in cards1:
+                    for c2 in cards1:
+                        if c1 == c2:
+                            continue
+                        new_move = ['Ramsay', c1, c2]
+                        cards_copy = copy.deepcopy(cards)
+                        player1_copy = copy.deepcopy(player1)
+                        player2_copy = copy.deepcopy(player2)
+                        companion_cards_copy = copy.deepcopy(companion_cards)
+                        choose_companion, Maxplayer = apply(new_move, companion_cards_copy, 1, player1_copy, player2_copy, cards_copy)
 
-
+                        val, _ = minimax(cards_copy, Maxplayer, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, choose_companion)
+                        if val > best_val:
+                            best_val = val
+                            best_move = new_move
+                        alpha = max(alpha, best_val)
+                        if beta <= alpha:  # Alpha-Beta Pruning
+                            break
+                    return best_val, best_move
 
             else:
                 cards_copy = copy.deepcopy(cards)
