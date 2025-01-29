@@ -1,9 +1,9 @@
 import copy
 import random
 import time
-from main import make_move, set_banners, make_companion_move, remove_unusable_companion_cards, house_card_count, Card
+from main import make_move, set_banners, make_companion_move, remove_unusable_companion_cards, house_card_count
 
-
+# this version has only jon playing in minimax
 def find_varys(cards):
     '''
     This function finds the location of Varys on the board.
@@ -233,15 +233,12 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
                     #     print("ERORRRRRRRRRRRRRR")
 
 
-            JonFlag = False
-            GendryFlag = False
+            flag = False
             for c in companion_cards:
                 if c == "Jon":
-                    JonFlag = True
-                if c == "Gendry":
-                    GendryFlag =  True
+                    flag = True
 
-            if(JonFlag):
+            if(flag):
                 if (maxplayer):
                     best_val = -float("-inf")
 
@@ -250,8 +247,11 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
                         # for comp_card in companion_cards:
 
                         comp_card = "Jon"
+
                         move = [comp_card]
                         del companion_cards[move[0]]
+                        print("tekrariiiiiiiiiiiiiiiii")
+
 
                         if (comp_card == 'Jon'):
                             valids = get_valid_jon_sandor_jaqan(cards)
@@ -261,39 +261,27 @@ def minimax(cards, maxplayer, alpha, beta, player1, player2, start_time, depth, 
                                 player2_copy = copy.deepcopy(player2)
                                 companion_cards_copy = copy.deepcopy(companion_cards)
                                 move_copy = copy.deepcopy(move)
+
                                 move_copy.append(valid)
+
                                 is_house = make_companion_move(cards_copy, companion_cards_copy, move_copy, player1_copy)
+                                print("it is jonnnnnnnnnnnnnnnnnn")
                                 remove_unusable_companion_cards(cards_copy, companion_cards_copy)
+                                # player1_copy, player2_copy = set_banners(player1_copy, player2_copy, is_house, 1)
                                 set_banners(player1_copy, player2_copy, is_house, 1)
+
+
+
+                                print("33333333333333333333333333333333333333")
+                                choose_companion = False
                                 val, _ = minimax(cards_copy, False, alpha, beta, player1_copy, player2_copy, start_time, depth - 1, companion_cards_copy, False)
                                 if val > best_val:
                                     best_val = val
                                 alpha = max(alpha, best_val)
-                                if beta <= alpha:
+                                if beta <= alpha:  # Alpha-Beta Pruning
                                     break
                             return best_val, move_copy
 
-
-            elif GendryFlag:
-                if(maxplayer):
-                    best_val = -float("-inf")
-
-                    comp_card = "Gendry"
-                    move = [comp_card]
-                    del companion_cards[move[0]]
-
-                newCard = Card('Baratheon', 'Gendry', -1)
-                house = 'Baratheon'  # Set the house
-                cards_copy = copy.deepcopy(cards)
-                player1_copy = copy.deepcopy(player1)
-                player2_copy = copy.deepcopy(player2)
-                companion_cards_copy = copy.deepcopy(companion_cards)
-                player1.add_card(newCard)
-                remove_unusable_companion_cards(cards_copy, companion_cards_copy)
-                set_banners(player1_copy, player2_copy, "Baratheon", 1)
-
-
-                pass
 
 
 
