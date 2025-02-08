@@ -10,17 +10,18 @@ from os.path import abspath, join, dirname
 assets_path = join((abspath(join(dirname(abspath(__file__)), pardir))), "assets")
 videos_path = join((abspath(join(dirname(abspath(__file__)), pardir))), "videos")
 
-ROWS = 6 # Number of rows in the board
-COLS = 6 # Number of columns in the board
+ROWS = 6  # Number of rows in the board
+COLS = 6  # Number of columns in the board
 CARD_SIZE = 110  # Size of the card
 MARGIN = 15  # Space in between cards
 FOOTER_SIZE = 30  # Size of the footer
 BOARD_HEIGHT = ROWS * CARD_SIZE + (ROWS - 1) * MARGIN + FOOTER_SIZE  # Height of the board
-BOARD_WIDTH = (COLS + 3) * CARD_SIZE + (COLS + 3 - 1) * MARGIN # Width of the board
+BOARD_WIDTH = (COLS + 3) * CARD_SIZE + (COLS + 3 - 1) * MARGIN  # Width of the board
 WIN_WIDTH = COLS * CARD_SIZE + (COLS - 1) * MARGIN  # Width of the win screen
 WINNER_HEIGHT_OFFSET = 36  # Height offset of the winner text
-assets = {} # Dictionary to store every asset
-frames = [] # List to store the frames of the video
+assets = {}  # Dictionary to store every asset
+frames = []  # List to store the frames of the video
+
 
 def load_assets():
     '''
@@ -30,8 +31,8 @@ def load_assets():
     # Get the characters of the game
     with open(join(assets_path, 'characters.json')) as f:
         characters = json.load(f)
-    
-    companions = characters['Companion'] # Companions of the game
+
+    companions = characters['Companion']  # Companions of the game
 
     # Remove the companions from the characters
     del characters['Companion']
@@ -54,7 +55,7 @@ def load_assets():
 
             # Resize the image of the card
             assets[character] = pygame.transform.scale(assets[character], (CARD_SIZE, CARD_SIZE))
-    
+
     # Load the icon of the window
     assets['icon'] = pygame.image.load(join(assets_path, 'icons', 'icon.jpg'))
 
@@ -77,7 +78,7 @@ def load_assets():
 
     # Resize the background of win screen to the size of the board
     assets['win_screen'] = pygame.transform.scale(assets['win_screen'], (WIN_WIDTH, BOARD_HEIGHT))
-    
+
     separation_x = COLS * CARD_SIZE + (COLS - 1) * MARGIN + (MARGIN // 2)
     gray_color = (128, 128, 128, 128)  # (R, G, B, Alpha)
 
@@ -94,6 +95,7 @@ def load_assets():
 
     # Store the gray surface in the assets
     assets['companions_gray_surface'] = companions_gray_surface
+
 
 def init_board():
     '''
@@ -128,9 +130,9 @@ def init_board():
         WINNER_HEIGHT_OFFSET = 31
 
         # Put the board in the top center of the screen
-        environ.pop('SDL_VIDEO_CENTERED', None) # Remove the previous setting
+        environ.pop('SDL_VIDEO_CENTERED', None)  # Remove the previous setting
         environ['SDL_VIDEO_WINDOW_POS'] = '%d, 30' % ((monitor_info.current_w - BOARD_WIDTH) // 2)
-    
+
     else:
         # Put the board in the center of the screen
         environ['SDL_VIDEO_CENTERED'] = '1'
@@ -153,6 +155,7 @@ def init_board():
 
     return board
 
+
 def update():
     '''
     This function updates the display.
@@ -160,7 +163,8 @@ def update():
 
     pygame.display.update()
 
-def store_frame(board, needs_resize = False, FPS = 30):
+
+def store_frame(board, needs_resize=False, FPS=30):
     '''
     This function stores the frame of the board.
 
@@ -170,17 +174,19 @@ def store_frame(board, needs_resize = False, FPS = 30):
         FPS (int): frames per second
     '''
 
-    frame = pygame.surfarray.array3d(board) # Get the frame
+    frame = pygame.surfarray.array3d(board)  # Get the frame
 
-    if needs_resize: # For the win screen
-        frame = pygame.transform.smoothscale(pygame.surfarray.make_surface(frame), (BOARD_WIDTH, BOARD_HEIGHT)) # Resize the frame
-        frame = pygame.surfarray.array3d(frame) # Get the frame
+    if needs_resize:  # For the win screen
+        frame = pygame.transform.smoothscale(pygame.surfarray.make_surface(frame),
+                                             (BOARD_WIDTH, BOARD_HEIGHT))  # Resize the frame
+        frame = pygame.surfarray.array3d(frame)  # Get the frame
 
-    frame = rot90(frame) # Rotate the frame
-    frame = flipud(frame) # Flip the frame
+    frame = rot90(frame)  # Rotate the frame
+    frame = flipud(frame)  # Flip the frame
 
     for _ in range(FPS):
-        frames.append(frame) # Store the frame
+        frames.append(frame)  # Store the frame
+
 
 def save_video(file_name):
     '''
@@ -191,10 +197,11 @@ def save_video(file_name):
     '''
 
     # Create a video of the game
-    clip = ImageSequenceClip(frames, fps = 30)
+    clip = ImageSequenceClip(frames, fps=30)
 
     # Save the video
-    clip.write_videofile(join(videos_path, file_name + '.mp4'), codec = 'libx264')
+    clip.write_videofile(join(videos_path, file_name + '.mp4'), codec='libx264')
+
 
 def draw_footer(board, text):
     '''
@@ -217,6 +224,7 @@ def draw_footer(board, text):
 
     # Draw the text on the board
     board.blit(text, text_rect)
+
 
 def draw_companions(board, companions):
     '''
@@ -241,7 +249,8 @@ def draw_companions(board, companions):
         # Draw the companion on the board
         board.blit(companion_img, (x, y))
 
-def draw_board(board, cards, companions, banner_footer, is_cards_gray = False):
+
+def draw_board(board, cards, companions, banner_footer, is_cards_gray=False):
     '''
     This function draws the cards on the board.
 
@@ -261,7 +270,7 @@ def draw_board(board, cards, companions, banner_footer, is_cards_gray = False):
         location = card.get_location()
 
         # Calculate the row and column of the card
-        row, col = location // COLS, location % COLS 
+        row, col = location // COLS, location % COLS
 
         # Calculate the position of the card
         x = col * CARD_SIZE + col * MARGIN
@@ -272,7 +281,7 @@ def draw_board(board, cards, companions, banner_footer, is_cards_gray = False):
 
         # Draw the card on the board
         board.blit(card_img, (x, y))
-    
+
     # Draw the footer
     draw_footer(board, banner_footer)
 
@@ -283,21 +292,21 @@ def draw_board(board, cards, companions, banner_footer, is_cards_gray = False):
     # Draw the companions
     draw_companions(board, companions)
 
-    if is_cards_gray: # True means companions must be chosen
+    if is_cards_gray:  # True means companions must be chosen
         # Get the gray surface to cover the cards
         gray_surface = assets['cards_gray_surface']
 
         # Draw the gray surface on the board
         board.blit(gray_surface, (0, 0))
-    
+
     elif is_cards_gray is not None:
         # Get the gray surface to cover the companions
         gray_surface = assets['companions_gray_surface']
 
         # Draw the gray surface on the board
         board.blit(gray_surface, (line_x, 0))
-    
-    else: # None means both cards and companions must be grayed out
+
+    else:  # None means both cards and companions must be grayed out
         # Get the gray surface to cover the cards
         gray_surface = assets['cards_gray_surface']
 
@@ -313,7 +322,8 @@ def draw_board(board, cards, companions, banner_footer, is_cards_gray = False):
     # Update the display
     update()
 
-    store_frame(board) # Store the frame
+    store_frame(board)  # Store the frame
+
 
 def display_winner(board, winner, winner_agent):
     '''
@@ -342,7 +352,7 @@ def display_winner(board, winner, winner_agent):
     # Get the text to display
     if winner_agent == 'human':
         text = 'Player ' + str(winner)
-    
+
     else:
         text = winner_agent[max(0, winner_agent.find('/'), winner_agent.find('\\')):]
 
@@ -361,7 +371,8 @@ def display_winner(board, winner, winner_agent):
     # Update the display
     update()
 
-    store_frame(board, True) # Store the frame
+    store_frame(board, True)  # Store the frame
+
 
 def show_board(seconds):
     '''
@@ -385,7 +396,8 @@ def show_board(seconds):
                 # Exit the program
                 exit()
 
-def get_player_move(card_moves, companions = None):
+
+def get_player_move(card_moves, companions=None):
     '''
     This function gets the move of the player.
 
@@ -431,15 +443,15 @@ def get_player_move(card_moves, companions = None):
                 if companions is not None:
                     for companion in possible_moves:
                         if companion[1][0] <= x <= companion[2][0] and companion[1][1] <= y <= companion[2][1]:
-                            location = [companion[0]] # Get the name of the companion
+                            location = [companion[0]]  # Get the name of the companion
                             move_made = True
                             break
-                    
-                    if move_made: # Exit the loop if the player clicked on a companion
+
+                    if move_made:  # Exit the loop if the player clicked on a companion
                         break
 
                     else:
-                        continue # Should select a companion
+                        continue  # Should select a companion
 
                 # Calculate the row and column of the card
                 col = x // (CARD_SIZE + MARGIN)
@@ -451,7 +463,7 @@ def get_player_move(card_moves, companions = None):
                 # Check if the location is valid
                 if location < ROWS * COLS and location in card_moves:
                     move_made = True
-            
+
             # Check if the event is the close button
             elif event.type == pygame.QUIT:
                 # Close the window
@@ -461,6 +473,7 @@ def get_player_move(card_moves, companions = None):
                 exit()
 
     return location
+
 
 def close_board():
     '''
