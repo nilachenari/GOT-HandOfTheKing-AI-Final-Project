@@ -4,6 +4,9 @@
 
 This project implements an AI agent to play *Hand of the King*, leveraging **MiniMax with Alpha-Beta pruning** and a **learning-based approach** for improved decision-making. We built upon the repository [Hand-of-the-King](https://github.com/Mohammad-Momeni/Hand-of-the-King), enhancing it with AI techniques.
 
+![Screenshot from 2025-02-08 15-20-10](https://github.com/user-attachments/assets/5e30fcda-8390-4516-86f4-ccb5f0522918)
+
+
 The project consists of two phases:
 1. **Phase 1:** Implementing the MiniMax algorithm with Alpha-Beta pruning and heuristic evaluation.
 2. **Phase 2:** Training the AI to refine its strategy dynamically.
@@ -87,3 +90,34 @@ Special thanks to **Dr. Salimi Badr** for guidance in the **Fundamentals of AI c
 **AI Rebels**  
 - **Nila Chenari**  
 - **Mehdi Rezaei**
+
+## Usage
+
+### Requirements
+
+- Python 3.x
+- Pygame (for game display)
+
+You can clone the repository and set up the project by running:
+
+```bash
+git clone https://github.com/your-repo/Hand-of-the-King-AI.git
+cd Hand-of-the-King-AI
+pip install -r requirements.txt
+```
+
+### Running the Game
+To run the game, use the following command line syntax:
+
+```bash 
+python main.py --player1 <player1_type> --player2 <player2_type> -l <load_file>
+ ```
+
+- `--player1`, `--player2` : Choose the players. Options:
+  - `"human"`:  Play manually
+  - `"<AI file>"`: Select a specific AI (e.g., rebel_agent, random_agent).
+  - 
+**Playing Manually**
+```bash
+python main.py --player1 rebel_agent --player2 human
+```
